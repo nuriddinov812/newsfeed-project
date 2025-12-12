@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .forms import ContactForm
-from django.views.generic import TemplateView,ListView
+from django.views.generic import TemplateView,ListView,UpdateView,DeleteView,CreateView
 from .models import Category,News
+from django.urls import reverse_lazy
 
 # Create your views here.
 
@@ -118,3 +119,27 @@ def error_page(request):
 def news_detail(request,pk):
     news = News.objects.get(pk=pk)
     return render(request,'single_page.html',{'news':news})
+
+
+
+class NewsUpdateView(UpdateView):
+    model = News
+    fields = ['title', 'body', 'image', 'category','status']
+    template_name = 'crud/news_update.html'
+    success_url = reverse_lazy('home')
+    
+    
+class NewsDeleteView(DeleteView):
+    model = News
+    template_name = 'crud/news_delete.html'    
+    success_url = reverse_lazy('home')
+    
+    
+   
+   
+class NewsCreateView(CreateView):
+    model = News
+    fields = '__all__'
+    template_name = 'crud/news_create.html'
+    success_url = reverse_lazy('home')
+
