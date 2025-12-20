@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate,login
 from django.contrib.auth.forms import UserCreationForm
 from django.views.generic import CreateView
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Profile
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -98,9 +99,25 @@ def edit_user(request):
 
 
 
-class EditUserView(View):
+class EditUserView(LoginRequiredMixin, View):
     
-    def get(self, request):
+    def get(self, request, *args, **kwargs):
+        # ensure profile
+        profile, _ = Profile.objects.get_or_create(user=request.user)
         user_form = ProfileEditForm(instance=request.user)
-        profile_form = UserProfileEditForm(instance=request.user.profile)
-        return render(request, 'account/profile_edit.html', {'user_form': user_form, 'profile_form': profile_form})
+        profile_form = UserProfileEditForm(instance=profile)
+        return render(request, 'account/profile_edit.html', {'user_form': user_form, 'profile_form': profile_form, 'profile': profile})
+
+    def post(self, request, *args, **kwargs):
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        user_form = ProfileEditForm(instance=request.user, data=request.POST)
+        profile_form = UserProfileEditForm(instance=profile, data=request.POST, files=request.FILES)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Your profile has been updated.')
+            return redirect('user_profile')
+
+
+        return render(request, 'account/profile_edit.html', {'user_form': user_form, 'profile_form': profile_form, 'profile': profile})

@@ -2,11 +2,15 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .forms import ContactForm
 from django.views.generic import TemplateView,ListView,UpdateView,DeleteView,CreateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
 from .models import Category,News,Comments
 from .forms import CommentForm
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.urls import reverse_lazy
+from news_project.custom_permissions import OnlyLoggedSuperUser
 
 # Create your views here.
 
@@ -127,24 +131,33 @@ def error_page(request):
     return render(request,'news/404.html')
 
 
-class NewsUpdateView(UpdateView):
+class NewsUpdateView(OnlyLoggedSuperUser, UpdateView):
     model = News
     fields = ['title', 'body', 'image', 'category','status']
     template_name = 'crud/news_update.html'
     success_url = reverse_lazy('home')
-    
-    
-class NewsDeleteView(DeleteView):
+
+
+class NewsDeleteView(OnlyLoggedSuperUser, DeleteView):
     model = News
     template_name = 'crud/news_delete.html'    
     success_url = reverse_lazy('home')
     
     
-   
-   
-class NewsCreateView(CreateView):
+
+
+class NewsCreateView(OnlyLoggedSuperUser, CreateView):
     model = News
     fields = '__all__'
     template_name = 'crud/news_create.html'
     success_url = reverse_lazy('home')
 
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def admin_page(request):
+
+    admin_users = User.objects.select_related('profile').all()
+    context = {
+        'admin_users': admin_users
+    }
+    return render(request, 'pages/admin_page.html', context)
