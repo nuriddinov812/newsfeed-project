@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Contact,Category,News
+from .models import Contact,Category,News,Comments
 
 # Register your models here.
 @admin.register(News)
@@ -16,3 +16,4 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ['id']     
      
 admin.site.register(Contact)
+admin.site.register(Comments)

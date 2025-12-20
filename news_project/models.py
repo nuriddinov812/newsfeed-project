@@ -50,3 +50,15 @@ class Contact(models.Model):
     def __str__(self):
         return self.email
     
+    
+class Comments(models.Model):
+    news=models.ForeignKey(News,on_delete=models.CASCADE,related_name='comments')
+    body=models.TextField()
+    created_on=models.DateTimeField(auto_now_add=True)
+
+    
+    class Meta:
+        ordering = ['created_on']
+    
+    def __str__(self):
+        return f'Comment #{self.pk}: {self.body[:30]!s}'

@@ -2,7 +2,10 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse
 from .forms import ContactForm
 from django.views.generic import TemplateView,ListView,UpdateView,DeleteView,CreateView
-from .models import Category,News
+from .models import Category,News,Comments
+from .forms import CommentForm
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.urls import reverse_lazy
 
 # Create your views here.
@@ -92,8 +95,26 @@ class SinglePageView(TemplateView):
 
         context['categories'] = Category.objects.all()
         context['popular_news'] = News.published.all().order_by('-publish_time')[:4]  
+
+        context['comments'] = context['news'].comments.all().order_by('-created_on')
+
+        context['comment_form'] = CommentForm()
         
         return context
+
+    def post(self, request, *args, **kwargs):
+
+        form = CommentForm(request.POST)
+        news_id = kwargs.get('pk')
+        news = get_object_or_404(News, pk=news_id)
+        if form.is_valid():
+            Comments.objects.create(news=news, body=form.cleaned_data['body'])
+            # Redirect to same page to avoid form resubmission
+            return redirect(reverse('single_page', kwargs={'pk': news.pk, 'slug': news.slug}))
+        # If invalid, render template with form errors
+        context = self.get_context_data(**kwargs)
+        context['comment_form'] = form
+        return self.render_to_response(context)
     
 
 def news_detail(request, pk):
@@ -101,25 +122,9 @@ def news_detail(request, pk):
     return render(request, 'news/single_page.html', {'news': news})
 
 
-def news_detail(request,pk):
-    news = News.objects.get(pk=pk)
-    return render(request,'news/single_page.html',{'news':news})
-    
-
-
-def single_page(request):
-    return render(request,'news/single_page.html')
-
-
 
 def error_page(request):
     return render(request,'news/404.html')
-
-
-def news_detail(request,pk):
-    news = News.objects.get(pk=pk)
-    return render(request,'news/single_page.html',{'news':news})
-
 
 
 class NewsUpdateView(UpdateView):

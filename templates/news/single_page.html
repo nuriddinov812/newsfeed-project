@@ -26,6 +26,36 @@
                     <div class="single_page_content">
                         <img class="img-center" src="{{ news.image.url }}" alt="{{ news.title }}">
                         <p>{{ news.body }}</p> 
+                        {% for comment in comments %}
+                        <li>
+                            <div class="media wow fadeInDown">
+                                <div class="media-body">
+                                    <h4 class="catg_title">Comment</h4>
+                                    <p>Time: {{ comment.created_on }}</p>
+                                    <p>{{ comment.body }}</p>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+
+                        {% if user.is_authenticated %}
+                            <li>
+                                <div class="media wow fadeInDown">
+                                    <div class="media-body">
+                                        <h4 class="catg_title">Add a Comment</h4>
+                                        <form method="post" novalidate>
+                                            {% csrf_token %}
+                                            <div class="mb-3">
+                                                {{ comment_form.as_p }}
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button type="submit" class="btn btn-primary">Submit Comment</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}                        
 
 
                         {% if user.is_superuser %}
@@ -65,7 +95,7 @@
                             </div>
                         </li>
                         {% endfor %}
-                        
+
                     </ul>
                 </div>
             </aside>
