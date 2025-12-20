@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from .models import Profile
 
 class LoginForm(forms.Form):
     username = forms.CharField()
@@ -23,3 +24,18 @@ class UserRegistrationForm(forms.Form):
     class Meta:
         model = User
         fields = ('username', 'first_name', 'email')
+        
+        
+
+class ProfileEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'last_name', 'email')
+        
+        
+class UserProfileEditForm(forms.ModelForm):
+    class Meta:
+        # photo and date_of_birth live on the Profile model, not User
+        model = Profile
+        fields = ('photo', 'date_of_birth')                
+        
