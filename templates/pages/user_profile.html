@@ -1,0 +1,37 @@
+{% extends "news/base.html" %}
+{% load static %}
+{% block title %}User Profile{% endblock title %}
+
+{% block content %}
+<div class="container my-4">
+
+
+
+  <div class="card mb-3">
+    <div class="row g-0 align-items-center">
+
+      <div class="col-md-9">
+
+        <div class="card-body">
+          <h3 class="card-title mb-2">{{ user.get_full_name|default:user.username }}</h3>
+          <p class="mb-1"><strong>Username:</strong> {{ user.username }}</p>
+          <p class="mb-1"><strong>Email:</strong> {{ user.email|default:"—" }}</p>
+          <p class="mb-1"><strong>First name:</strong> {{ user.first_name|default:"—" }}</p>
+          <p class="mb-1"><strong>Last name:</strong> {{ user.last_name|default:"—" }}</p>
+          <p class="text-muted small mb-3">Member since: {{ user.date_joined|date:"M d, Y" }}</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a href="{% url "password_change" %}" class="text-muted">Password Change</a>
+  </div>
+
+  <div class="mt-3">
+    <a href="{% url "home" %}" class="text-muted">← Back to home</a>
+  </div>
+
+</div>
+{% endblock content %}

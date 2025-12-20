@@ -1,0 +1,17 @@
+{% extends "news/base.html" %}
+{% load static %}
+{% block title %}Login sahifasi{% endblock title %}
+
+
+{% block content %}
+    <h2>Login Page</h2>
+    <a href="{% url 'password_reset' %}">Forgot Password?</a>
+
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+
+{% endblock content %}

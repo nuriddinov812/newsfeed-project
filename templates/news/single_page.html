@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "news/base.html" %}
 {% load static %}
 
 
@@ -28,10 +28,10 @@
                         <p>{{ news.body }}</p> 
 
 
-
+                        {% if user.is_superuser %}
                             <a href="{% url 'news_delete' news.pk news.slug %}" class="btn btn-danger">Delete</a> 
                             <a href="{% url 'news_update' news.pk news.slug %}" class="btn btn-primary">Edit</a>
-
+                        {% endif %}
 
                     </div>
                     <div class="social_link">

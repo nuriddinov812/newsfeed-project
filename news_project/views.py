@@ -25,7 +25,7 @@ from django.urls import reverse_lazy
 # Home Page View
 class HomePageView(ListView):
     model = News
-    template_name = 'index.html'
+    template_name = 'news/index.html'
     context_object_name = 'news_list'
 
     def get_context_data(self, **kwargs):
@@ -58,13 +58,13 @@ class HomePageView(ListView):
 #     return render(request,'contact.html',context=context)
 
 class ContactPageView(TemplateView):
-    template_name = 'contact.html'
+    template_name = 'news/contact.html'
 
             
     def get(self, request, *args, **kwargs):
         form = ContactForm()
         
-        return render(request, "contact.html", {"form": form})
+        return render(request, "news/contact.html", {"form": form})
     
     def post(self, request, *args, **kwargs):
         form = ContactForm(request.POST)
@@ -73,14 +73,14 @@ class ContactPageView(TemplateView):
             form.save()
             return HttpResponse('<h2>Thanks for your message</h2>')
         
-        return render(request, "contact.html", {"form": form})
+        return render(request, "news/contact.html", {"form": form})
 
     
     
 
 
 class SinglePageView(TemplateView):
-    template_name = 'single_page.html'
+    template_name = 'news/single_page.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -98,27 +98,27 @@ class SinglePageView(TemplateView):
 
 def news_detail(request, pk):
     news = get_object_or_404(News, pk=pk)  # Yangilikni ID bo'yicha olish
-    return render(request, 'single_page.html', {'news': news})
+    return render(request, 'news/single_page.html', {'news': news})
 
 
 def news_detail(request,pk):
     news = News.objects.get(pk=pk)
-    return render(request,'single_page.html',{'news':news})
+    return render(request,'news/single_page.html',{'news':news})
     
 
 
 def single_page(request):
-    return render(request,'single_page.html')
+    return render(request,'news/single_page.html')
 
 
 
 def error_page(request):
-    return render(request,'404.html')
+    return render(request,'news/404.html')
 
 
 def news_detail(request,pk):
     news = News.objects.get(pk=pk)
-    return render(request,'single_page.html',{'news':news})
+    return render(request,'news/single_page.html',{'news':news})
 
 
 

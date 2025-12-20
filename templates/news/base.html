@@ -46,7 +46,20 @@
                         </ul>
                     </div>
                     <div class="header_top_right">
+
+                        {% if request.user.is_authenticated %}
+                        <p><a style="color:yellow"href="{% url 'user_profile' %}">My Profile</a></p>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit">Logout</button>
+                        </form>                        
+                        {% else %}
+                        <p><a href="{% url 'login' %}" style="color:yellow">Login</a></p>
+                        <p><a href="{% url 'register' %}" style="color:yellow">Register</a></p>
+                        {% endif %}
+
                         <p>{% now "DATETIME_FORMAT" %}</p>
+
                     </div>
                 </div>
             </div>
@@ -92,9 +105,10 @@
 
 
                     <li><a href="{% url 'contact' %}">Contact Us</a></li>
-                    <li><a href="{% url 'news_create' %}">Create News</a></li>                    
+                    {% if user.is_superuser %}
+                    <li><a href="{% url 'news_create' %}">Create News</a></li>
+                    {% endif %}
 
-                </ul>
             </div>
         </nav>
     </section>
@@ -120,6 +134,7 @@
                 <li class="vimeo"><a href="#"></a></li>
                 <li class="youtube"><a href="#"></a></li>
                 <li class="mail"><a href="#"></a></li>
+                <li class="mail"><a href="https://t.me/abdulalim_0812"></a></li>
                 </ul>
             </div>
             </div>
