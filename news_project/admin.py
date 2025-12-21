@@ -16,4 +16,18 @@ class CategoryAdmin(admin.ModelAdmin):
     list_filter = ['id']     
      
 admin.site.register(Contact)
-admin.site.register(Comments)
+
+
+@admin.register(Comments)
+class CommentsAdmin(admin.ModelAdmin):
+    list_display = ['news','user','created_on','active']
+    list_filter = ['created_on','active']
+    search_fields = ['body','user__username']
+    actions = ['disable_comments','activate_comments']
+    
+    def disable_comments(self, request, queryset):
+        queryset.update(active=False)
+        
+        
+    def activate_comments(self, request, queryset):
+        queryset.update(active=True)

@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -48,6 +49,22 @@
                             {% if request.user.is_superuser %}
                             <li><a href="{% url 'admin_page' %}">Admin Page</a></li>
                             {% endif %}
+
+                            <form action="{% url 'set_language' %}" method="post">{% csrf_token %}
+                                <input name="next" type="hidden" value="{{ redirect_to }}">
+                                <select name="language">
+                                    {% get_current_language as LANGUAGE_CODE %}
+                                    {% get_available_languages as LANGUAGES %}
+                                    {% get_language_info_list for LANGUAGES as languages %}
+                                    {% for language in languages %}
+                                        <option value="{{ language.code }}"{% if language.code == LANGUAGE_CODE %} selected{% endif %}>
+                                            {{ language.name_local }} ({{ language.code }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <input type="submit" value="Go">
+                            </form>
+
                         </ul>
                     </div>
                     <div class="header_top_right">
@@ -110,6 +127,19 @@
 
 
                     <li><a href="{% url 'contact' %}">Contact Us</a></li>
+
+                    <li class="search_box">
+
+                        <form method="get" action="{% url "search_results" %}" class="navbar-form" role="search">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search..." name="q">
+                                <div class="input-group-btn">
+                                    <button class="btn btn-default" type="submit"><i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                    </li>
+
                     {% if user.is_superuser %}
                     <li><a href="{% url 'news_create' %}">Create News</a></li>
                     {% endif %}

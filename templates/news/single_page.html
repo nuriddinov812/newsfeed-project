@@ -22,16 +22,20 @@
                     <div class="post_commentbox">
                         <span><i class="fa fa-calendar"></i>{{ news.publish_time }}</span> 
                         <a href="#"><i class="fa fa-tags"></i>{{ news.category.name }}</a>
+                        <span><i class="fa fa-eye"></i>{% if news_hitcount %}{{ news_hitcount.hits }}{% else %}{{ news.views_count }}{% endif %}</span>
+                        <span><i class="fa fa-comments"></i>{{ comments_count }}</span>
                     </div>
                     <div class="single_page_content">
                         <img class="img-center" src="{{ news.image.url }}" alt="{{ news.title }}">
                         <p>{{ news.body }}</p> 
-                        
+                        <br> 
+
                         {% for comment in comments %}
                         <li>
                             <div class="media wow fadeInDown">
                                 <div class="media-body">
-                                    <h4 class="catg_title">Comment</h4>
+                                    <img src="{{ comment.user.profile.photo.url }}" alt="{{ comment.user.username }}" class="img-circle" width="50" height="50">
+                                    <strong>{{ comment.user.username }}</strong>
                                     <p>Time: {{ comment.created_on }}</p>
                                     <p>{{ comment.body }}</p>
                                 </div>
@@ -56,6 +60,8 @@
                                     </div>
                                 </div>
                             </li>
+                         {% else %}
+                            <p>Please <a href="{% url 'login' %}" style="color: blue;">login</a> to add a comment.</p>   
                         {% endif %}                        
 
 
@@ -84,18 +90,18 @@
                     <h2><span>Popular Post</span></h2>
                     <ul class="spost_nav">
 
-                        {% for popular_news in popular_news %}
-                        <li>
-                            <div class="media wow fadeInDown">
-                                <a href="{% url 'single_page' popular_news.pk news.slug %}" class="media-left">
-                                    <img alt="" src="{{ popular_news.image.url }}">
+                        <ul class="list-unstyled">
+                            {% for popular_new in popular_news %}
+                            <li class="mb-2">
+                                <a href="{% url 'single_page' popular_new.pk popular_new.slug %}" class="d-flex text-decoration-none">
+                                    <img class="img-thumbnail me-2" src="{{ popular_new.image.url }}" alt="{{ popular_new.title }}">
+                                    <div class="ms-2">
+                                        <a href="{% url 'single_page' popular_new.pk popular_new.slug %}" class="catg_title">{{ popular_new.title }}</a>
+                                    </div>
                                 </a>
-                                <div class="media-body">
-                                    <a href="{% url 'single_page' popular_news.pk news.slug %}" class="catg_title">{{ popular_news.title }}</a>
-                                </div>
-                            </div>
-                        </li>
-                        {% endfor %}
+                            </li>
+                            {% endfor %}
+                        </ul>
 
                     </ul>
                 </div>

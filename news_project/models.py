@@ -31,7 +31,7 @@ class News(models.Model):
         choices=Status.choices,
         default=Status.DRAFT
     )
-    
+    views_count = models.PositiveIntegerField(default=0)
     objects = models.Manager()
     published = PublishedManager()
     
@@ -53,12 +53,29 @@ class Contact(models.Model):
     
 class Comments(models.Model):
     news=models.ForeignKey(News,on_delete=models.CASCADE,related_name='comments')
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     body=models.TextField()
     created_on=models.DateTimeField(auto_now_add=True)
+    active=models.BooleanField(default=True)
+    comment_count = models.PositiveIntegerField(default=0)
 
     
     class Meta:
         ordering = ['created_on']
     
     def __str__(self):
-        return f'Comment #{self.pk}: {self.body[:30]!s}'
+        return f'Comment {self.pk}: {self.body[:30]!s}'
+
+
+class NewsView(models.Model):
+
+    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='views')
+    ip_address = models.CharField(max_length=45)  # supports IPv6
+    created_on = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('news', 'ip_address')
+        ordering = ['-created_on']
+
+    def __str__(self):
+        return f'{self.ip_address} -> {self.news_id}'

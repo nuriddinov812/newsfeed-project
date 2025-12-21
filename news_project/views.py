@@ -6,10 +6,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from .models import Category,News,Comments
+from .models import NewsView
 from .forms import CommentForm
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.urls import reverse_lazy
+from django.db.models import Q, F
+from django.utils import timezone
+from datetime import timedelta
 from news_project.custom_permissions import OnlyLoggedSuperUser
 
 # Create your views here.
@@ -89,41 +93,100 @@ class ContactPageView(TemplateView):
 class SinglePageView(TemplateView):
     template_name = 'news/single_page.html'
     
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
 
         news_id = kwargs.get('pk')  
-        context['news'] = get_object_or_404(News, pk=news_id)  
-        
+        news = get_object_or_404(News, pk=news_id)
+        # Record view by unique IP
+        ip = self._get_client_ip(self.request)
+        if ip:
+            # create view if not exists; unique_together prevents duplicates
+            created = False
+            try:
+                obj, created = NewsView.objects.get_or_create(news=news, ip_address=ip)
+            except Exception:
+                # In rare race conditions a duplicate insertion may raise; ignore
+                created = False
 
-        context['categories'] = Category.objects.all()
+            if created:
+                # increment stored counter atomically
+                News.objects.filter(pk=news.pk).update(views_count=F('views_count') + 1)
+
+
+  
+
+        context['news'] = news
         context['popular_news'] = News.published.all().order_by('-publish_time')[:4]  
 
         context['comments'] = context['news'].comments.all().order_by('-created_on')
 
+        context['comments_count'] = Comments.objects.filter(news=news, active=True).count()
+
         context['comment_form'] = CommentForm()
-        
         return context
 
+    def _get_client_ip(self, request):
+        """Return the client's IP address, respecting X-Forwarded-For if present."""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            # X-Forwarded-For can contain multiple IPs, take the first one
+            ip = x_forwarded_for.split(',')[0].strip()
+            return ip
+        return request.META.get('REMOTE_ADDR')
+    
     def post(self, request, *args, **kwargs):
-
-        form = CommentForm(request.POST)
-        news_id = kwargs.get('pk')
-        news = get_object_or_404(News, pk=news_id)
-        if form.is_valid():
-            Comments.objects.create(news=news, body=form.cleaned_data['body'])
-            # Redirect to same page to avoid form resubmission
-            return redirect(reverse('single_page', kwargs={'pk': news.pk, 'slug': news.slug}))
-        # If invalid, render template with form errors
         context = self.get_context_data(**kwargs)
-        context['comment_form'] = form
-        return self.render_to_response(context)
+        news = context['news']
+        comment_form = CommentForm(request.POST)
+
+        if comment_form.is_valid():
+            new_comment = comment_form.save(commit=False)
+            new_comment.news = news
+            new_comment.user = request.user
+            new_comment.save()
+            # We calculate comment counts on the fly; do not update a non-existent
+            # `comment_count` field on News (avoid FieldDoesNotExist).
+            return redirect('single_page', pk=news.pk, slug=news.slug)
+
+        context['comment_form'] = comment_form
+        return render(request, self.template_name, context)
+    
+    
     
 
-def news_detail(request, pk):
-    news = get_object_or_404(News, pk=pk)  # Yangilikni ID bo'yicha olish
-    return render(request, 'news/single_page.html', {'news': news})
+# def news_detail(request, pk, slug):
+#     news = get_object_or_404(News, pk=pk, slug=slug)  # Yangilikni ID bo'yicha olish
+#     comments = news.comments.filter(active=True).order_by('-created_on') 
+#     new_comment = None
+
+#     if news.slug != slug:
+#         return redirect(
+#             reverse('single_page', kwargs={'pk': news.pk, 'slug': news.slug})
+#         )    
+#     if request.method == 'POST':
+#         comment_form = CommentForm(data=request.POST)
+#         if comment_form.is_valid():
+#             new_comment = comment_form.save(commit=False)
+#             new_comment.news = news
+#             new_comment.user = request.user
+#             new_comment.save()
+#     else:
+#         comment_form = CommentForm()
+        
+#     context = {
+#         'popular_news': News.published.all().order_by('-publish_time')[:4],
+#         'categories': Category.objects.all(),
+#         'news': news,
+#         'comments': comments,
+#         'new_comment': new_comment,
+#         'comment_form': comment_form
+#     }   
+
+#     return render(request, 'news/single_page.html', context)
+
 
 
 
@@ -133,7 +196,7 @@ def error_page(request):
 
 class NewsUpdateView(OnlyLoggedSuperUser, UpdateView):
     model = News
-    fields = ['title', 'body', 'image', 'category','status']
+    fields = ['title', 'title_uz', 'title_en', 'title_ru', 'body_uz', 'body_en', 'body_ru', 'image', 'category','status']
     template_name = 'crud/news_update.html'
     success_url = reverse_lazy('home')
 
@@ -161,3 +224,23 @@ def admin_page(request):
         'admin_users': admin_users
     }
     return render(request, 'pages/admin_page.html', context)
+
+
+
+class SearchResultsView(ListView):
+    model = News
+    template_name = 'news/search_results.html'
+    context_object_name = 'results'
+
+    def get_queryset(self):
+        query = (self.request.GET.get('q') or '').strip()
+        if not query:
+            return News.published.none()
+        return News.published.filter(Q(title__icontains=query) | Q(body__icontains=query))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['query'] = self.request.GET.get('q', '')
+        return context
+    
+    

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Contact
+from .models import Comments, Contact
 
 class ContactForm(forms.ModelForm):
     class Meta:
@@ -8,5 +8,7 @@ class ContactForm(forms.ModelForm):
         
         
         
-class CommentForm(forms.Form):
-    body = forms.CharField(label='', widget=forms.Textarea(attrs={'rows':4, 'placeholder':'Enter your comment here...'}))        
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comments
+        fields = ['body']

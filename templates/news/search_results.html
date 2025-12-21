@@ -1,0 +1,26 @@
+{% extends "news/base.html" %}
+
+{% load static %}
+
+{% block title %}Search Results{% endblock title %}
+
+{% block content %}
+  <div class="container my-4">
+    <h2 class="mb-4">Search Results for "{{ query }}"</h2>
+
+    {% if results %}
+      <ul class="list-group">
+
+        {% for news in results %}
+          <li class="list-group-item list-group-item-action mb-2">
+            <h5 class="mb-1"><a href="{% url 'single_page' news.pk news.slug %}">{{ news.title }}</a></h5>
+            <p class="mb-1"><a href="{% url 'single_page' news.pk news.slug %}">{{ news.body|truncatewords_html:30 }}</a></p>
+            <small>Published on {{ news.publish_time }}</small>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No results found for "{{ query }}". Please try a different search term.</p>
+    {% endif %}
+  </div>
+{% endblock content %}
